@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.9
 WORKDIR /app
 
 COPY app/requirements.txt /app/
@@ -8,4 +8,4 @@ RUN pip3 install -r /app/requirements.txt
 EXPOSE 5000
 COPY ./app /app
 #RUN chmod +x app/StartApplication.sh
-CMD ["/bin/bash", "/app/StartApplication.sh"]
+CMD ["python", "app.py"]
