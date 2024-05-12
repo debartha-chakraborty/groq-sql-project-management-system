@@ -21,7 +21,7 @@ def apis():
     <h2>Task</h2>
     <ul>
         <li>GET /get_tasks - Get all tasks within the last 30 days</li>
-        <li>GET /get_tasks - body:{"start_date": "2024-05-01","end_date": null} - Get all tasks from start date till today</li>
+        <li>GET /get_tasks - body:{"start_date": "2024-05-01","end_date": null} - Get all tasks from start_date till current_date</li>
         <li>GET /get_tasks - body:{"start_date": "2024-05-01","end_date": "2024-05-31"} - Get all tasks within the specified date range</li>
         <li>POST /add_task - Add a new task</li>
         <li>PUT /update_task/{task_id} - Update a task by ID</li>
@@ -30,6 +30,11 @@ def apis():
     
     <h2>Job</h2>
     <ul>
+        <li>GET /get_jobs - Get all jobs</li>
+        <li>POST /add_job - Add a new job</li>
+        <li>PUT /update_job/{task_id} - Update a job by task ID</li>
+        <li>PUT /remove_job/{task_id} - Remove a job by task ID</li>
+        <li>DELETE /delete_job/{task_id} - Delete a job by task ID</li>
     </ul>
     """
     return text
@@ -186,20 +191,74 @@ def delete_task(task_id):
 
 ########################## JOB ROUTES ##########################
 
-# GET get_jobs() - Get all jobs where status is not 'removed' 
-# Employee name, designation, task title, description, assignment_date,estimated_time 
-# Employee name, designation, task title, description, assignment_date,estimated_time, completion_date (if status is 'completed')
+@app.route('/get_jobs', methods=['GET'])
+def get_jobs():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT e.name, e.designation, t.title, t.description, j.assignment_date, j.estimated_time, j.completion_date, j.status FROM job j JOIN employee e ON j.emp_id = e.emp_id JOIN task t ON j.task_id = t.task_id WHERE j.status != 'removed'")
+    jobs = cur.fetchall()
+    close_connection(conn)
+    return jsonify(jobs)
+
+@app.route('/add_job', methods=['POST'])
+def add_job():
+    data = request.get_json()
+    emp_id = data.get('emp_id')
+    task_id = data.get('task_id')
+    estimated_time = data.get('estimated_time')
+    assignment_date = datetime.datetime.now()
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO job (emp_id, task_id, estimated_time, assignment_date) VALUES (%s, %s, %s, %s) RETURNING (emp_id, task_id)", (emp_id, task_id, estimated_time, assignment_date))
+    new_job_id = cur.fetchone()[0]
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"job_id": new_job_id}), 201
+
+@app.route('/update_job/<int:task_id>', methods=['PUT'])
+def update_job(task_id):
+    data = request.get_json()
+    estimated_time = data.get('estimated_time')
+    status = data.get('status')
+    conn = get_connection()
+    cur = conn.cursor()
+    if estimated_time == None:
+        estimated_time_query = ''
+    else:
+        estimated_time_query = f"estimated_time = {estimated_time} "
+    character = '' if estimated_time_query == '' else ','
+    if status == None:
+        sql_query = f"UPDATE job SET {estimated_time_query} WHERE task_id = {task_id}"
+    elif status == 'completed':
+        completion_date = datetime.datetime.now()
+        sql_query = f"UPDATE job SET {estimated_time_query}{character} status = '{status}', completion_date = '{completion_date}' WHERE task_id = {task_id}"    
+    else:
+        sql_query = f"UPDATE job SET {estimated_time_query}{character} status = '{status}' WHERE task_id = {task_id}"
+    # print(f"\n\n{sql_query}\n\n")
+    cur.execute(sql_query)
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"message": "Job updated successfully"})
 
 
+@app.route('/remove_job/<int:task_id>', methods=['PUT'])
+def remove_job(task_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE job SET status = 'removed' WHERE task_id = %s", (task_id, ))
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"message": "Job removed successfully"})
 
-# POST add_job() - Add a new job
-# params: emp_id, task_id, estimated_time
 
-# UPDATE update_job() - Update a job by task_id
-# params: estimated_time | status
-# if status is 'completed', set completion_date to current date
-
-# DELETE delete_job() - Delete a job by task_id
+@app.route('/delete_job/<int:task_id>', methods=['DELETE'])
+def delete_job(task_id):
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM job WHERE task_id = %s", (task_id,))
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"message": "Job deleted successfully"})
  
 
 if __name__ == '__main__':
