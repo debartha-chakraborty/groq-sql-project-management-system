@@ -1,4 +1,3 @@
-from flask import jsonify, request
 import psycopg2
 import yaml
 

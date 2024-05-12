@@ -9,7 +9,7 @@ def apis():
     text = """
     <h1>Employee Management API</h1>
     <p>Welcome to the Employee Management API! Here are the available endpoints:</p>
-    <h2>Endpoints:</h2>
+    <h2>Employee</h2>
     <ul>
         <li>GET /get_employees - Get all employees</li>
         <li>GET /get_employees/{id} - Get an employee by ID</li>
@@ -17,8 +17,16 @@ def apis():
         <li>PUT /update_employee_project_count/{id} - Update an employee's active project count</li>
         <li>DELETE /delete_employee/{id} - Delete an employee by ID</li>
     </ul>
+    <h2>Task</h2>
+    <ul>
+    </ul>
+    <h2>Job</h2>
+    <ul>
+    </ul>
     """
     return text
+
+########################## EMPLOYEE ROUTES ##########################
 
 
 @app.route('/get_employees', methods=['GET'])
@@ -86,6 +94,24 @@ def delete_employee(id):
     close_connection(conn)
     return jsonify({"message": "Employee deleted successfully"})
 
+
+########################## TASK ROUTES ##########################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+########################## JOB ROUTES ##########################
 
 
 if __name__ == '__main__':
