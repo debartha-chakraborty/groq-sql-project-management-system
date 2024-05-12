@@ -1,6 +1,0 @@
-database:
-  host: ep-damp-wind-a1zimjjz.ap-southeast-1.aws.neon.tech
-  port: 5432
-  user: neondb_owner
-  password: A3lcbquzew9T
-  database: neondb

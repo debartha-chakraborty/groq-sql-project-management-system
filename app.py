@@ -17,9 +17,11 @@ def apis():
         <li>PUT /update_employee_project_count/{id} - Update an employee's active project count</li>
         <li>DELETE /delete_employee/{id} - Delete an employee by ID</li>
     </ul>
+    
     <h2>Task</h2>
     <ul>
     </ul>
+    
     <h2>Job</h2>
     <ul>
     </ul>
