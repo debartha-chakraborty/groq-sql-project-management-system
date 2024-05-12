@@ -1,18 +1,12 @@
-from flask import jsonify, request
 import psycopg2
-import yaml
+from dotenv import load_dotenv
+import os
 
-# Load the database configuration from the config file
-def get_config():
-    with open('config.yaml', 'r') as f:
-        config = yaml.safe_load(f)['database']
-    return config
-
+load_dotenv()
 
 def get_connection():
     """Establishes a connection to the Postgres database."""
-    params = get_config()
-    conn = psycopg2.connect(**params)
+    conn = psycopg2.connect(os.environ.get("DATABASE_URL"))
     return conn
 
 
@@ -21,3 +15,8 @@ def close_connection(conn):
     if conn:
         conn.close()
 
+
+if __name__ == "__main__":
+    conn = get_connection()
+    close_connection(conn)
+    print("Connection established successfully.")

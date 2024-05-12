@@ -4,9 +4,31 @@ from modules.db import get_connection, close_connection
 app = Flask(__name__)
 
 
-@app.route('/')
-def hello_world():
-    return 'Hello from Flask!'
+@app.route('/docs')
+def apis():
+    text = """
+    <h1>Employee Management API</h1>
+    <p>Welcome to the Employee Management API! Here are the available endpoints:</p>
+    <h2>Employee</h2>
+    <ul>
+        <li>GET /get_employees - Get all employees</li>
+        <li>GET /get_employees/{id} - Get an employee by ID</li>
+        <li>POST /add_employee - Add a new employee</li>
+        <li>PUT /update_employee_project_count/{id} - Update an employee's active project count</li>
+        <li>DELETE /delete_employee/{id} - Delete an employee by ID</li>
+    </ul>
+    
+    <h2>Task</h2>
+    <ul>
+    </ul>
+    
+    <h2>Job</h2>
+    <ul>
+    </ul>
+    """
+    return text
+
+########################## EMPLOYEE ROUTES ##########################
 
 
 @app.route('/get_employees', methods=['GET'])
@@ -55,7 +77,6 @@ def create_employee():
 def update_employee(id):
     """Route to update an existing employee."""
     data = request.get_json()
-    id = data.get('id')
     active_project_count = data.get('active_project_count')
     conn = get_connection()
     cur = conn.cursor()
@@ -75,8 +96,25 @@ def delete_employee(id):
     close_connection(conn)
     return jsonify({"message": "Employee deleted successfully"})
 
-# Add more routes and functions here, using db.get_connection()
-# as needed for database access
+
+########################## TASK ROUTES ##########################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+########################## JOB ROUTES ##########################
+
 
 if __name__ == '__main__':
     app.run(debug=True)

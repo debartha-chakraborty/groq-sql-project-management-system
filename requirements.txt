@@ -4,3 +4,4 @@ pydantic
 datetime
 pyyaml
 flask
+python-dotenv
