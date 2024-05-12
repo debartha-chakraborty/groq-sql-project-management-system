@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from modules.db import get_connection, close_connection
-
+import datetime
 app = Flask(__name__)
 
 
@@ -99,18 +99,83 @@ def delete_employee(id):
 
 ########################## TASK ROUTES ##########################
 
+def get_last_30_days():
+    """Returns a tuple containing start and end dates for the last 30 days."""
+    end_date = datetime.datetime.now()
+    start_date = end_date - datetime.timedelta(days=30)
+    return start_date, end_date
 
 
+@app.route('/get_tasks', methods=['GET'])
+def get_tasks():
+    """Route to get tasks within the last 30 days or within the specified date range."""
+    data=request.get_json()
+    start_date_str = data.get('start_date')
+    end_date_str = data.get('end_date')
+    print(start_date_str)
+    print(end_date_str)
+    if start_date_str != None:
+        start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
+        if end_date_str != None:
+            end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d')
+        else:
+            end_date = datetime.datetime.now()
+    else:
+        start_date, end_date = get_last_30_days()
+
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM task WHERE request_date BETWEEN %s AND %s", (start_date, end_date))
+    tasks = cur.fetchall()
+    close_connection(conn)
+    return jsonify(tasks)
 
 
+@app.route('/add_task', methods=['POST'])
+def add_task():
+    """Route to add a new task."""
+    data = request.get_json()
+    title = data.get('title')
+    description = data.get('description')
+    request_date = datetime.datetime.now()
+    tech = data.get('tech')
+    ideal_skills = data.get('ideal_skills')
+    
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("INSERT INTO task (title, description, request_date, tech, ideal_skills) VALUES (%s, %s, %s, %s, %s) RETURNING task_id", (title, description, request_date, tech, ideal_skills))
+    new_task_id = cur.fetchone()[0]
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"task_id": new_task_id}), 201
 
 
+@app.route('/update_task/<int:task_id>', methods=['PUT'])
+def update_task(task_id):
+    """Route to update an existing task."""
+    data = request.get_json()
+    title = data.get('title')
+    description = data.get('description')
+    tech = data.get('tech')
+    ideal_skills = data.get('ideal_skills')
+    
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("UPDATE task SET title = %s, description = %s, tech = %s, ideal_skills = %s WHERE task_id = %s", (title, description, tech, ideal_skills, task_id))
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"message": "Task updated successfully"})
 
 
-
-
-
-
+@app.route('/delete_task/<int:task_id>', methods=['DELETE'])
+def delete_task(task_id):
+    """Route to delete a task by ID."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM task WHERE task_id = %s", (task_id,))
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"message": "Task deleted successfully"})
 
 
 ########################## JOB ROUTES ##########################
