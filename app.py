@@ -5,8 +5,19 @@ app = Flask(__name__)
 
 
 @app.route('/')
-def hello_world():
-    return 'Hello from Flask!'
+def apis():
+    text = """
+    <h1>Employee Management API</h1>
+    <p>Welcome to the Employee Management API! Here are the available endpoints:</p>
+    <ul>
+        <li>GET /get_employees - Get all employees</li>
+        <li>GET /get_employees/{id} - Get an employee by ID</li>
+        <li>POST /add_employee - Add a new employee</li>
+        <li>PUT /update_employee_project_count/{id} - Update an employee's active project count</li>
+        <li>DELETE /delete_employee/{id} - Delete an employee by ID</li>
+    </ul>
+    """
+    return text
 
 
 @app.route('/get_employees', methods=['GET'])
