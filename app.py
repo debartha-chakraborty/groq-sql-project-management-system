@@ -20,6 +20,12 @@ def apis():
     
     <h2>Task</h2>
     <ul>
+        <li>GET /get_tasks - Get all tasks within the last 30 days</li>
+        <li>GET /get_tasks - body:{"start_date": "2024-05-01","end_date": null} - Get all tasks from start date till today</li>
+        <li>GET /get_tasks - body:{"start_date": "2024-05-01","end_date": "2024-05-31"} - Get all tasks within the specified date range</li>
+        <li>POST /add_task - Add a new task</li>
+        <li>PUT /update_task/{task_id} - Update a task by ID</li>
+        <li>DELETE /delete_task/{task_id} - Delete a task by ID</li>        
     </ul>
     
     <h2>Job</h2>
@@ -180,6 +186,21 @@ def delete_task(task_id):
 
 ########################## JOB ROUTES ##########################
 
+# GET get_jobs() - Get all jobs where status is not 'removed' 
+# Employee name, designation, task title, description, assignment_date,estimated_time 
+# Employee name, designation, task title, description, assignment_date,estimated_time, completion_date (if status is 'completed')
+
+
+
+# POST add_job() - Add a new job
+# params: emp_id, task_id, estimated_time
+
+# UPDATE update_job() - Update a job by task_id
+# params: estimated_time | status
+# if status is 'completed', set completion_date to current date
+
+# DELETE delete_job() - Delete a job by task_id
+ 
 
 if __name__ == '__main__':
     app.run(debug=True)
