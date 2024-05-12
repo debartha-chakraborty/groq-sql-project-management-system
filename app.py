@@ -1,29 +1,15 @@
 from flask import Flask, jsonify, request
-import psycopg2
-import yaml
+from modules.db import get_connection, close_connection
+
 app = Flask(__name__)
 
-# Load the database configuration from the config file
-def get_config():
-    with open('app\config.yaml', 'r') as f:
-        config = yaml.safe_load(f)['database']
-    return config
+
+@app.route('/')
+def hello_world():
+    return 'Hello from Flask!'
 
 
-def get_connection():
-    """Establishes a connection to the Postgres database."""
-    params = get_config()
-    conn = psycopg2.connect(**params)
-    return conn
-
-
-def close_connection(conn):
-    """Closes the connection to the database."""
-    if conn:
-        conn.close()
-
-
-@app.route('/employees', methods=['GET'])
+@app.route('/get_employees', methods=['GET'])
 def get_employees():
     """Route to get all employees from the database."""
     conn = get_connection()
@@ -34,7 +20,7 @@ def get_employees():
     return jsonify(employees)
 
 
-@app.route('/employee/<int:id>', methods=['GET'])
+@app.route('/get_employees/<int:id>', methods=['GET'])
 def get_employee_by_id(id):
     """Route to get an employee by ID."""
     conn = get_connection()
@@ -48,7 +34,7 @@ def get_employee_by_id(id):
         return jsonify({"error": "Employee not found"}), 404
 
 
-@app.route('/employees', methods=['POST'])
+@app.route('/add_employee', methods=['POST'])
 def create_employee():
     """Route to create a new employee."""
     data = request.get_json()
@@ -65,23 +51,21 @@ def create_employee():
     return jsonify({"id": new_employee_id}), 201
 
 
-@app.route('/employee/<int:id>', methods=['PUT'])
+@app.route('/update_employee_project_count/<int:id>', methods=['PUT'])
 def update_employee(id):
     """Route to update an existing employee."""
     data = request.get_json()
-    name = data.get('name')
-    designation = data.get('designation')
-    skills = data.get('skills')
+    id = data.get('id')
     active_project_count = data.get('active_project_count')
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("UPDATE employee SET name = %s, designation = %s, skills = %s, active_project_count=%s WHERE emp_id = %s", (name, designation, skills,  active_project_count, id))
+    cur.execute("UPDATE employee SET active_project_count=%s WHERE emp_id = %s", (active_project_count, id))
     conn.commit()
     close_connection(conn)
     return jsonify({"message": "Employee updated successfully"})
 
 
-@app.route('/employee/<int:id>', methods=['DELETE'])
+@app.route('/delete_employee/<int:id>', methods=['DELETE'])
 def delete_employee(id):
     """Route to delete an employee by ID."""
     conn = get_connection()
@@ -91,6 +75,8 @@ def delete_employee(id):
     close_connection(conn)
     return jsonify({"message": "Employee deleted successfully"})
 
+# Add more routes and functions here, using db.get_connection()
+# as needed for database access
 
 if __name__ == '__main__':
     app.run(debug=True)

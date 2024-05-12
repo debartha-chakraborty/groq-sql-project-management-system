@@ -1,11 +1,12 @@
-FROM python:3.9
-WORKDIR /app
+# syntax=docker/dockerfile:1
 
-COPY app/requirements.txt /app/
-RUN apt-get update && apt install -y libpq-dev && apt-get install -y gcc
-RUN pip3 install -r /app/requirements.txt
-#ENV LISTEN_PORT 5000
-EXPOSE 5000
-COPY ./app /app
-#RUN chmod +x app/StartApplication.sh
-CMD ["python", "app.py"]
+FROM python:3.8-slim-buster
+
+WORKDIR /project-docker
+
+COPY requirements.txt requirements.txt
+RUN pip3 install -r requirements.txt
+
+COPY . .
+
+CMD [ "python3", "-m" , "flask", "run", "--host=0.0.0.0"]
