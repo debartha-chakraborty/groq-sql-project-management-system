@@ -1,0 +1,6 @@
+psycopg2
+flask_sqlalchemy
+pydantic
+datetime
+pyyaml
+flask
