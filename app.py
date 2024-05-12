@@ -176,17 +176,6 @@ def delete_task(task_id):
     return jsonify({"message": "Task deleted successfully"})
 
 
-
-
-
-
-
-
-
-
-
-
-
 ########################## JOB ROUTES ##########################
 
 
