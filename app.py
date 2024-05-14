@@ -16,7 +16,10 @@ def after_request(response):
     return response
 
 
-
+########################## DOCUMENTATION ROUTE ##########################
+@app.route('/') #redirect to docs route
+def home():
+    return apis()
 
 @app.route('/docs')
 def apis():
