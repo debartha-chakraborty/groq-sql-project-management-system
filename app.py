@@ -34,9 +34,9 @@ def apis():
     
     <h2>Task</h2>
     <ul>
-        <li>GET /get_tasks - Get all tasks within the last 30 days</li>
-        <li>GET /get_tasks - body:{"start_date": "2024-05-01","end_date": null} - Get all tasks from start_date till current_date</li>
-        <li>GET /get_tasks - body:{"start_date": "2024-05-01","end_date": "2024-05-31"} - Get all tasks within the specified date range</li>
+        <li>GET /get_tasks - Get all tasks within the last 28 days</li>
+        <li>GET /get_tasks?start={start_date} - Get tasks from start date to present</li>
+        <li>GET /get_tasks?start={start_date}&end={end_date} - Get tasks within the specified date range</li>
         <li>POST /add_task - Add a new task</li>
         <li>PUT /update_task/{task_id} - Update a task by ID</li>
         <li>DELETE /delete_task/{task_id} - Delete a task by ID</li>        
@@ -124,33 +124,34 @@ def delete_employee(id):
 
 ########################## TASK ROUTES ##########################
 
-
 @app.route('/get_tasks', methods=['GET'])
 def get_tasks():
-    """Route to get tasks within the last 30 days or within the specified date range."""
-    data=request.get_json()
-    start_date_str = data.get('start_date')
-    end_date_str = data.get('end_date')
-    print(start_date_str)
-    print(end_date_str)
-    if start_date_str == None:
+    """Route to get tasks within the last 28 days or within the specified date range."""
+    start_date = request.args.get('start')
+    end_date = request.args.get('end')
+    print(f"\n\n{start_date} - {end_date}\n\n")
+    
+    if start_date == None:
+        print("Case 1")
         end_date = datetime.datetime.now()
         start_date = end_date - datetime.timedelta(days=28)
     else:
-        start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
-        if end_date_str != None:
-            end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d')
-        else:
+        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
+        if end_date == None:
+            # print("Case 2")
             end_date = datetime.datetime.now()
-    
+        else:
+            # print("Case 3")
+            end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
         
-
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("SELECT * FROM task WHERE request_date BETWEEN %s AND %s", (start_date, end_date))
     tasks = cur.fetchall()
     close_connection(conn)
     return jsonify(tasks)
+
+
 
 
 @app.route('/add_task', methods=['POST'])
