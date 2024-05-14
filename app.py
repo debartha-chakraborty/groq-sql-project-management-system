@@ -1,7 +1,21 @@
 from flask import Flask, jsonify, request
 from modules.db import get_connection, close_connection
 import datetime
+from flask_cors import CORS
 app = Flask(__name__)
+
+
+CORS(app) # This will enable CORS for all routes
+
+# Adding CORS headers to the response
+@app.after_request
+def after_request(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    return response
+
+
 
 
 @app.route('/docs')
@@ -110,12 +124,6 @@ def delete_employee(id):
 
 ########################## TASK ROUTES ##########################
 
-def get_last_30_days():
-    """Returns a tuple containing start and end dates for the last 30 days."""
-    end_date = datetime.datetime.now()
-    start_date = end_date - datetime.timedelta(days=30)
-    return start_date, end_date
-
 
 @app.route('/get_tasks', methods=['GET'])
 def get_tasks():
@@ -125,14 +133,17 @@ def get_tasks():
     end_date_str = data.get('end_date')
     print(start_date_str)
     print(end_date_str)
-    if start_date_str != None:
+    if start_date_str == None:
+        end_date = datetime.datetime.now()
+        start_date = end_date - datetime.timedelta(days=28)
+    else:
         start_date = datetime.datetime.strptime(start_date_str, '%Y-%m-%d')
         if end_date_str != None:
             end_date = datetime.datetime.strptime(end_date_str, '%Y-%m-%d')
         else:
             end_date = datetime.datetime.now()
-    else:
-        start_date, end_date = get_last_30_days()
+    
+        
 
     conn = get_connection()
     cur = conn.cursor()
