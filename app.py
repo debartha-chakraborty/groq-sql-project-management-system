@@ -139,9 +139,9 @@ def get_tasks():
         if end_date == None:
             SQL = f"SELECT * FROM task WHERE request_date > '{start_date}'"
         else:
-            SQL = f"SELECT * FROM task WHERE request_date BETWEEN '{start_date}' AND '{end_date}'"
-            
-        
+            SQL = f"SELECT * FROM task WHERE request_date >= '{start_date}' AND request_date <= '{end_date}'"
+    print(SQL)        
+    
     conn = get_connection()
     cur = conn.cursor() 
     cur.execute(SQL)
