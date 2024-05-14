@@ -131,21 +131,30 @@ def get_tasks():
     start_date = request.args.get('start')
     end_date = request.args.get('end') 
     curr_date = date.today()
-    
+    SQL2 = f"SELECT * FROM task WHERE request_date <= '{end_date}'"
     if start_date == None:
         start_date = curr_date - timedelta(days=28)
         SQL = f"SELECT * FROM task WHERE request_date > '{start_date}'"
     else:
-        if end_date == None:
-            SQL = f"SELECT * FROM task WHERE request_date > '{start_date}'"
-        else:
-            SQL = f"SELECT * FROM task WHERE request_date >= '{start_date}' AND request_date <= '{end_date}'"
+        SQL = f"SELECT * FROM task WHERE request_date >= '{start_date}'"
+        # if end_date == None:
+        #     SQL = f"SELECT * FROM task WHERE request_date >= '{start_date}'"
+        # else:
+        #     SQL = f"SELECT * FROM task WHERE request_date >= '{start_date}'"
+            
     print(SQL)        
     
     conn = get_connection()
     cur = conn.cursor() 
     cur.execute(SQL)
     tasks = cur.fetchall()
+    
+    if end_date != None:
+        cur.execute(SQL2)
+        tasks2 = cur.fetchall()
+        # intersection of two lists
+        tasks = [task for task in tasks if task in tasks2]
+    
     close_connection(conn)
     return jsonify(tasks)
 
