@@ -30,13 +30,13 @@ def apis():
         <li>POST /add_employee - Add a new employee</li>
         <li>PUT /update_employee_project_count/{id} - Update an employee's active project count</li>
         <li>DELETE /delete_employee/{id} - Delete an employee by ID</li>
+        <li>DELETE /delete_employee_batch - Delete multiple employees by ID - json body [id1,id2,id3, ...] </li>
     </ul>
     
     <h2>Task</h2>
     <ul>
-        <li>GET /get_tasks - Get all tasks within the last 28 days</li>
-        <li>GET /get_tasks?start={start_date} - Get tasks from start date to present</li>
-        <li>GET /get_tasks?start={start_date}&end={end_date} - Get tasks within the specified date range</li>
+        <li>GET /get_assigned_tasks - Get all tasks that is assigned</li>
+        <li>GET /get_unassigned_tasks - Get all tasks that is not assigned</li>
         <li>POST /add_task - Add a new task</li>
         <li>PUT /update_task/{task_id} - Update a task by ID</li>
         <li>DELETE /delete_task/{task_id} - Delete a task by ID</li>        
@@ -121,43 +121,46 @@ def delete_employee(id):
     close_connection(conn)
     return jsonify({"message": "Employee deleted successfully"})
 
+@app.route('/delete_employee_batch', methods=['DELETE'])
+def delete_employee_batch():
+    """Route to delete multiple employees by ID."""
+    data = request.get_json()
+    conn = get_connection()
+    cur = conn.cursor()
+    for id in data:
+        cur.execute("DELETE FROM employee WHERE emp_id = %s", (id,))
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"message": "Employees deleted successfully with ids: " + str(data)})
+
 
 ########################## TASK ROUTES ##########################
 
-@app.route('/get_tasks', methods=['GET'])
-def get_tasks():
-    """Route to get tasks within the last 28 days or within the specified date range."""
-   
-    start_date = request.args.get('start')
-    end_date = request.args.get('end') 
-    curr_date = date.today()
-    SQL2 = f"SELECT * FROM task WHERE request_date <= '{end_date}'"
-    if start_date == None:
-        start_date = curr_date - timedelta(days=28)
-        SQL = f"SELECT * FROM task WHERE request_date > '{start_date}'"
-    else:
-        SQL = f"SELECT * FROM task WHERE request_date >= '{start_date}'"
-        # if end_date == None:
-        #     SQL = f"SELECT * FROM task WHERE request_date >= '{start_date}'"
-        # else:
-        #     SQL = f"SELECT * FROM task WHERE request_date >= '{start_date}'"
-            
-    print(SQL)        
+
+@app.route('/get_assigned_tasks', methods=['GET'])
+def get_assigned_tasks():
+    """Route to get tasks which are assigned to any employee."""
+    SQL = "SELECT * FROM task WHERE task_id IN (SELECT task_id FROM job)"
     
     conn = get_connection()
     cur = conn.cursor() 
     cur.execute(SQL)
     tasks = cur.fetchall()
-    
-    if end_date != None:
-        cur.execute(SQL2)
-        tasks2 = cur.fetchall()
-        # intersection of two lists
-        tasks = [task for task in tasks if task in tasks2]
-    
     close_connection(conn)
     return jsonify(tasks)
 
+
+@app.route('/get_unassigned_tasks', methods=['GET'])
+def get_unassigned_tasks():
+    """Route to get tasks which are not assigned to any employee."""
+    SQL = "SELECT * FROM task WHERE task_id NOT IN (SELECT task_id FROM job)"
+    
+    conn = get_connection()
+    cur = conn.cursor() 
+    cur.execute(SQL)
+    tasks = cur.fetchall()
+    close_connection(conn)
+    return jsonify(tasks)
 
 
 
