@@ -146,7 +146,10 @@ def get_tasks():
         
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT * FROM task WHERE request_date BETWEEN %s AND %s", (start_date, end_date))
+    if start_date == None:
+        cur.execute("SELECT * FROM task")
+    else:
+        cur.execute("SELECT * FROM task WHERE request_date BETWEEN %s AND %s", (start_date, end_date))
     tasks = cur.fetchall()
     close_connection(conn)
     return jsonify(tasks)
