@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 from modules.db import get_connection, close_connection
-import datetime
+from datetime import date, datetime, timedelta, timezone
 from flask_cors import CORS
 app = Flask(__name__)
 
@@ -127,29 +127,24 @@ def delete_employee(id):
 @app.route('/get_tasks', methods=['GET'])
 def get_tasks():
     """Route to get tasks within the last 28 days or within the specified date range."""
+   
     start_date = request.args.get('start')
-    end_date = request.args.get('end')
-    print(f"\n\n{start_date} - {end_date}\n\n")
+    end_date = request.args.get('end') 
+    curr_date = date.today()
     
     if start_date == None:
-        print("Case 1")
-        end_date = datetime.datetime.now()
-        start_date = end_date - datetime.timedelta(days=28)
+        start_date = curr_date - timedelta(days=28)
+        SQL = f"SELECT * FROM task WHERE request_date > '{start_date}'"
     else:
-        start_date = datetime.datetime.strptime(start_date, '%Y-%m-%d')
         if end_date == None:
-            # print("Case 2")
-            end_date = datetime.datetime.now()
+            SQL = f"SELECT * FROM task WHERE request_date > '{start_date}'"
         else:
-            # print("Case 3")
-            end_date = datetime.datetime.strptime(end_date, '%Y-%m-%d')
+            SQL = f"SELECT * FROM task WHERE request_date BETWEEN '{start_date}' AND '{end_date}'"
+            
         
     conn = get_connection()
-    cur = conn.cursor()
-    if start_date == None:
-        cur.execute("SELECT * FROM task")
-    else:
-        cur.execute("SELECT * FROM task WHERE request_date BETWEEN %s AND %s", (start_date, end_date))
+    cur = conn.cursor() 
+    cur.execute(SQL)
     tasks = cur.fetchall()
     close_connection(conn)
     return jsonify(tasks)
@@ -163,7 +158,7 @@ def add_task():
     data = request.get_json()
     title = data.get('title')
     description = data.get('description')
-    request_date = datetime.datetime.now()
+    request_date = datetime.now(timezone.utc)
     tech = data.get('tech')
     ideal_skills = data.get('ideal_skills')
     
@@ -221,7 +216,7 @@ def add_job():
     emp_id = data.get('emp_id')
     task_id = data.get('task_id')
     estimated_time = data.get('estimated_time')
-    assignment_date = datetime.datetime.now()
+    assignment_date = datetime.now(timezone.utc)
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("INSERT INTO job (emp_id, task_id, estimated_time, assignment_date) VALUES (%s, %s, %s, %s) RETURNING (emp_id, task_id)", (emp_id, task_id, estimated_time, assignment_date))
@@ -245,7 +240,7 @@ def update_job(task_id):
     if status == None:
         sql_query = f"UPDATE job SET {estimated_time_query} WHERE task_id = {task_id}"
     elif status == 'completed':
-        completion_date = datetime.datetime.now()
+        completion_date = datetime.now(timezone.utc)
         sql_query = f"UPDATE job SET {estimated_time_query}{character} status = '{status}', completion_date = '{completion_date}' WHERE task_id = {task_id}"    
     else:
         sql_query = f"UPDATE job SET {estimated_time_query}{character} status = '{status}' WHERE task_id = {task_id}"
