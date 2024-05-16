@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from modules.db import get_connection, close_connection
+from agents.main import ai_task_assigner
 from datetime import date, datetime, timedelta, timezone
 from flask_cors import CORS
 app = Flask(__name__)
@@ -16,7 +17,10 @@ def after_request(response):
     return response
 
 
-
+########################## DOCUMENTATION ROUTE ##########################
+@app.route('/') #redirect to docs route
+def home():
+    return apis()
 
 @app.route('/docs')
 def apis():
@@ -281,7 +285,23 @@ def delete_job(task_id):
     conn.commit()
     close_connection(conn)
     return jsonify({"message": "Job deleted successfully"})
+
+
+
+########################## AI Agent Utility APIs ##########################
  
+@app.route('/ai_assign', methods=['POST'])
+def ai_assign_task():
+    """Route to assign employees and tasks with skills."""
+    sql = ai_task_assigner()
+    
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(sql)
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"message": "Tasks assigned successfully"})
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
