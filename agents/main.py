@@ -31,6 +31,7 @@ def get_suited_employees():
 def assign_task_availability(suited_employees_tasks):
     assignment_matrix = []
     employees_project_count = get_all_empProjCount()
+    print(employees_project_count)
     for inner_list in suited_employees_tasks:
         employees = inner_list[1]
         tasks = inner_list[0]
@@ -83,10 +84,8 @@ def join_task_details(assignment_matrix, task_details):
     return final_output
 
 def build_sql_query(final_output):
-    # INSERT INTO job (emp_id, task_id, estimated_time) VALUES (5, 2, 8), (3, 1, 4), (7, 4, 12);
-	sql_query = "INSERT INTO job (emp_id, task_id, estimated_time) VALUES "
-	values = str(final_output).replace("[", "").replace("]", "") + ";"
-	return sql_query + values
+	sql_query = f"""INSERT INTO job (emp_id, task_id, estimated_time) VALUES {str(final_output).replace('[', '').replace(']', '')};"""
+	return sql_query
 
 def ai_task_assigner():
     suited_employees_tasks = get_suited_employees()
