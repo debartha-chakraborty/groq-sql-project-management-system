@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from modules.db import get_connection, close_connection
+from agents.main import ai_task_assigner
 from datetime import date, datetime, timedelta, timezone
 from flask_cors import CORS
 app = Flask(__name__)
@@ -289,27 +290,18 @@ def delete_job(task_id):
 
 ########################## AI Agent Utility APIs ##########################
  
-@app.route('/get_employees_tasks_with_skills', methods=['GET'])
-def get_employees_tasks_with_skills():
+@app.route('/ai_assign', methods=['POST'])
+def ai_assign_task():
+    """Route to assign employees and tasks with skills."""
+    sql = ai_task_assigner()
+    
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT e.emp_id, e.skills FROM employee e")
-    employees = cur.fetchall()
-    cur.execute("SELECT t.task_id, t.ideal_skills FROM task t")
-    tasks = cur.fetchall()
+    cur.execute(sql)
+    conn.commit()
     close_connection(conn)
-    return jsonify(employees, tasks)
-
-@app.route('/get_empProjCount_task_details', methods=['GET'])
-def get_empProjCount_task_details():
-    conn = get_connection()
-    cur = conn.cursor()
-    cur.execute("SELECT e.emp_id, e.active_project_count FROM employee e")
-    employees = cur.fetchall()
-    cur.execute("SELECT t.task_id, t.title, t.description FROM task t")
-    tasks = cur.fetchall()
-    close_connection(conn)
-    return jsonify(employees, tasks)
+    return jsonify({"message": "Tasks assigned successfully"})
+    
 
 if __name__ == '__main__':
     app.run(debug=True)

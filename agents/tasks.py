@@ -27,16 +27,13 @@ def identification_task(agent, employees, tickets):
 		
 def assignment_task(agent, employee, task):
 	return Task(description=dedent(
-		f"""You will assign the tasks to a suitable employee from the employee table while balancing their active projects. Also estimate the time required in hours for the task based on task description.
-
-		Employee Table
-		--------------
-		{employee}
+		f"""You will estimate the time required in hours for the task based on task description and title.
 
 		Task
 		----
 		{task}
+  
 		"""),
-		expected_output="You will look over the ticket and format it in the format [[employee_id, task_id, estimated_time_in_hours], ...] Your Final answer must be the ticket, only the ticket and nothing else.",
+		expected_output="You will look over the ticket and format it in the format [[task_id, estimated_time_in_hours], ...] Your Final answer must be the ticket and estimated time only, the ticket and nothing else.",
 		agent=agent
 	)

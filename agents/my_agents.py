@@ -9,11 +9,11 @@ llm = ChatGroq(
 		temperature=0
 	)
 
-def task_master_agent():
+def scrum_master_agent():
     	return Agent(
-		role='Task Master',
-		goal='Assign new ticket to the most suitable employee based on employee availability.',
-		backstory=dedent("""You are a Task Master. Your job is to assign new ticket to the most suitable employee. You also add the estimated time to complete for each ticket."""),
+		role='Scrum Master',
+		goal='Identify the time required to finish the provided tickets.',
+		backstory=dedent("""You are a Scrum Master. You can provide estimate the required time to complete each ticket."""),
 		allow_delegation=False,
 		llm=llm,
 		verbose=True

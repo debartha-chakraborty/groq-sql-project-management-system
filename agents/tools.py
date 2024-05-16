@@ -1,11 +1,7 @@
-from db import get_connection, close_connection
-
-
+from .db import get_connection, close_connection
 from crewai_tools import tool
-from flask import jsonify
 
 
-# @tool("employee task skill tool")
 def get_employees_tasks_with_skills():
     """Returns the employees and tasks with their skills."""
     conn = get_connection()
@@ -16,6 +12,17 @@ def get_employees_tasks_with_skills():
     tasks = cur.fetchall()
     close_connection(conn)
     return employees, tasks
+
+def get_all_empProjCount():
+    """Returns the project count for all employees."""
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT e.emp_id, e.active_project_count FROM employee e")
+    employees = cur.fetchall()
+    close_connection(conn)
+    
+    employees = {emp[0]: emp[1] for emp in employees}
+    return employees
 
 def get_empProjCount(employee_list):
     """Returns the project count for each employee.""" 
@@ -29,7 +36,16 @@ def get_empProjCount(employee_list):
     #convert it to a dictionary with emp_id as key
     employees = {emp[0]: emp[1] for emp in employees}
     return employees
-    
+
+def get_task_details(task_list):
+    """Returns the task details."""
+    task_list = tuple(task_list)
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT t.task_id, t.title, t.description FROM task t WHERE t.task_id IN %s", (task_list,))
+    tasks = cur.fetchall()
+    close_connection(conn)
+    return tasks
 
 # @tool("employee project count tool")
 def get_empProjCount_task_details(task_employee_list):
