@@ -7,6 +7,6 @@ flask
 python-dotenv
 flask_cors
 crewai
-crewai_tools
-langchain_groq
-langchain
+crewai-tools
+langchain-groq
+# langchain

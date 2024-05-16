@@ -11,7 +11,8 @@ def get_suited_employees():
     senior_engineer_agent = senior_manager_agent()
     # Get employees and tasks
     employees, tasks = get_employees_tasks_with_skills()
-    
+    if tasks == []:
+        return []
     # Create Tasks
     identification_task = identification_task(senior_engineer_agent, employees, tasks)
     # Create Crew responsible for Copy
@@ -89,6 +90,8 @@ def build_sql_query(final_output):
 
 def ai_task_assigner():
     suited_employees_tasks = get_suited_employees()
+    if suited_employees_tasks == []:
+        return False
     assignment_matrix = assign_task_availability(suited_employees_tasks)
     task_details = get_estimated_time(assignment_matrix)
     final_output = join_task_details(assignment_matrix, task_details)
