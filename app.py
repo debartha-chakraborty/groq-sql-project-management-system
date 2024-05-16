@@ -284,7 +284,32 @@ def delete_job(task_id):
     conn.commit()
     close_connection(conn)
     return jsonify({"message": "Job deleted successfully"})
+
+
+
+########################## AI Agent Utility APIs ##########################
  
+@app.route('/get_employees_tasks_with_skills', methods=['GET'])
+def get_employees_tasks_with_skills():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT e.emp_id, e.skills FROM employee e")
+    employees = cur.fetchall()
+    cur.execute("SELECT t.task_id, t.ideal_skills FROM task t")
+    tasks = cur.fetchall()
+    close_connection(conn)
+    return jsonify(employees, tasks)
+
+@app.route('/get_empProjCount_task_details', methods=['GET'])
+def get_empProjCount_task_details():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT e.emp_id, e.active_project_count FROM employee e")
+    employees = cur.fetchall()
+    cur.execute("SELECT t.task_id, t.title, t.description FROM task t")
+    tasks = cur.fetchall()
+    close_connection(conn)
+    return jsonify(employees, tasks)
 
 if __name__ == '__main__':
     app.run(debug=True)
