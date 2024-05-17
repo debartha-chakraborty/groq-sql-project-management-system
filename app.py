@@ -1,5 +1,6 @@
 from flask import Flask, jsonify, request
 from modules.db import get_connection, close_connection
+from agents.main import ai_task_assigner
 from datetime import date, datetime, timedelta, timezone
 from flask_cors import CORS
 app = Flask(__name__)
@@ -16,7 +17,10 @@ def after_request(response):
     return response
 
 
-
+########################## DOCUMENTATION ROUTE ##########################
+@app.route('/') #redirect to docs route
+def home():
+    return apis()
 
 @app.route('/docs')
 def apis():
@@ -50,6 +54,12 @@ def apis():
         <li>PUT /remove_job/{task_id} - Remove a job by task ID</li>
         <li>DELETE /delete_job/{task_id} - Delete a job by task ID</li>
     </ul>
+    
+    <h2>AI Agent</h2>
+    <ul>
+        <li>POST /ai_assign - Assign tasks to employees using AI agent</li>
+    </ul>
+    
     """
     return text
 
@@ -233,6 +243,13 @@ def add_job():
     cur = conn.cursor()
     cur.execute("INSERT INTO job (emp_id, task_id, estimated_time, assignment_date) VALUES (%s, %s, %s, %s) RETURNING (emp_id, task_id)", (emp_id, task_id, estimated_time, assignment_date))
     new_job_id = cur.fetchone()[0]
+    if new_job_id == None:
+        conn.commit()
+        close_connection(conn)
+        return jsonify({"message": "Employee or Task not found"}), 404
+    
+    update_employee_project_count_sql = f"UPDATE employee SET active_project_count = active_project_count + 1 WHERE emp_id = {emp_id}"
+    cur.execute(update_employee_project_count_sql)
     conn.commit()
     close_connection(conn)
     return jsonify({"job_id": new_job_id}), 201
@@ -251,13 +268,25 @@ def update_job(task_id):
     character = '' if estimated_time_query == '' else ','
     if status == None:
         sql_query = f"UPDATE job SET {estimated_time_query} WHERE task_id = {task_id}"
+        cur.execute(sql_query)
     elif status == 'completed':
         completion_date = datetime.now(timezone.utc)
         sql_query = f"UPDATE job SET {estimated_time_query}{character} status = '{status}', completion_date = '{completion_date}' WHERE task_id = {task_id}"    
+        cur.execute(sql_query)
+        active_project_count_sql = """
+        UPDATE employee SET active_project_count = j.job_count FROM (SELECT emp_id, COUNT(*) AS job_count FROM job WHERE status NOT IN ('removed', 'completed') GROUP BY emp_id) AS j WHERE employee.emp_id = j.emp_id;
+        UPDATE employee SET active_project_count = 0 WHERE emp_id NOT IN (SELECT emp_id FROM job WHERE status NOT IN ('removed', 'completed'));
+        """
+        cur.execute(active_project_count_sql)
     else:
         sql_query = f"UPDATE job SET {estimated_time_query}{character} status = '{status}' WHERE task_id = {task_id}"
-    # print(f"\n\n{sql_query}\n\n")
-    cur.execute(sql_query)
+        cur.execute(sql_query)
+        active_project_count_sql = """
+        UPDATE employee SET active_project_count = j.job_count FROM (SELECT emp_id, COUNT(*) AS job_count FROM job WHERE status NOT IN ('removed', 'completed') GROUP BY emp_id) AS j WHERE employee.emp_id = j.emp_id;
+        UPDATE employee SET active_project_count = 0 WHERE emp_id NOT IN (SELECT emp_id FROM job WHERE status NOT IN ('removed', 'completed'));
+        """
+        cur.execute(active_project_count_sql)
+    
     conn.commit()
     close_connection(conn)
     return jsonify({"message": "Job updated successfully"})
@@ -268,6 +297,11 @@ def remove_job(task_id):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("UPDATE job SET status = 'removed' WHERE task_id = %s", (task_id, ))
+    active_project_count_sql = """
+    UPDATE employee SET active_project_count = j.job_count FROM (SELECT emp_id, COUNT(*) AS job_count FROM job WHERE status NOT IN ('removed', 'completed') GROUP BY emp_id) AS j WHERE employee.emp_id = j.emp_id;
+    UPDATE employee SET active_project_count = 0 WHERE emp_id NOT IN (SELECT emp_id FROM job WHERE status NOT IN ('removed', 'completed'));
+    """
+    cur.execute(active_project_count_sql)
     conn.commit()
     close_connection(conn)
     return jsonify({"message": "Job removed successfully"})
@@ -278,10 +312,45 @@ def delete_job(task_id):
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("DELETE FROM job WHERE task_id = %s", (task_id,))
+    
+    active_project_count_sql = """
+    UPDATE employee SET active_project_count = j.job_count FROM (SELECT emp_id, COUNT(*) AS job_count FROM job WHERE status NOT IN ('removed', 'completed') GROUP BY emp_id) AS j WHERE employee.emp_id = j.emp_id;
+    UPDATE employee SET active_project_count = 0 WHERE emp_id NOT IN (SELECT emp_id FROM job WHERE status NOT IN ('removed', 'completed'));
+    """
+    
+    cur.execute(active_project_count_sql)
+    
     conn.commit()
     close_connection(conn)
     return jsonify({"message": "Job deleted successfully"})
+
+
+
+########################## AI Agent Utility APIs ##########################
  
+@app.route('/ai_assign', methods=['POST'])
+def ai_assign_task():
+    """Route to assign employees and tasks with skills."""
+    sql = ai_task_assigner()
+    if sql == False:
+        return jsonify({"message": "No tasks to assign"})
+    
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute(sql)
+    
+    active_project_count_sql = """
+    UPDATE employee SET active_project_count = j.job_count FROM (SELECT emp_id, COUNT(*) AS job_count FROM job WHERE status NOT IN ('removed', 'completed') GROUP BY emp_id) AS j WHERE employee.emp_id = j.emp_id;
+    UPDATE employee SET active_project_count = 0 WHERE emp_id NOT IN (SELECT emp_id FROM job WHERE status NOT IN ('removed', 'completed'));
+    """
+    
+    cur.execute(active_project_count_sql)
+    
+    
+    conn.commit()
+    close_connection(conn)
+    return jsonify({"message": "Tasks assigned successfully"})
+    
 
 if __name__ == '__main__':
     app.run(debug=True)
