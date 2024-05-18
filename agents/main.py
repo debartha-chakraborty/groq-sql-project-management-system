@@ -49,6 +49,8 @@ def assign_task_availability(suited_employees_tasks):
                 employees_project_count[employees[0]] += 1
         else:
             employees_details = get_empProjCount(employees)
+            if 'error' in employees_details:
+                return {"error": "Oops! Something went wrong at the function get_empProjCount", "Log": employees_details }
             for task_id in tasks:
                 employee_id = min(employees_details, key=employees_details.get)
                 assignment_matrix.append([task_id, employee_id])
@@ -81,7 +83,8 @@ def join_task_details(assignment_matrix, task_details):
     # assignment_matrix Format [[task_id, employee_id], ...]
     # task_details Format [[task_id, estimated_time], ...]
     # Output target Format [(employee_id, task_id, estimated_time), ...]
-    
+    # print(assignment_matrix)
+    # print(task_details)
     assign_mat_dict = {task[0]: task[1] for task in assignment_matrix}
     task_det_dict = {task[0]: task[1] for task in task_details}
     final_output = []
@@ -99,10 +102,23 @@ def ai_task_assigner():
         return False
     if suited_employees_tasks[0] == "ERR":
         return {"error": suited_employees_tasks[1]}
+    # print(suited_employees_tasks)
+    
     assignment_matrix = assign_task_availability(suited_employees_tasks)
+    # print(assignment_matrix)
+    
+    if assignment_matrix == []:
+        return {"error": "No employees found"}
+    
     task_details = get_estimated_time(assignment_matrix)
+    # print(task_details)
+    
     final_output = join_task_details(assignment_matrix, task_details)
+    # print(final_output)
+    
     sql = build_sql_query(final_output)
+    # print(sql)
+    
     return sql
 
 if __name__ == "__main__":
@@ -128,3 +144,6 @@ if __name__ == "__main__":
     
     standalone = ai_task_assigner()
     print(standalone)
+    
+    # print(json.loads())
+     

@@ -17,11 +17,16 @@ def identification_task(agent, employees, tickets):
 		Ticket Table
 		------------
 		{tickets}
+  
+  
+		example: [[[ticket_id1, ticket_id2, ...], [employee_id1, employee_id2, ...]] , [[ticket_id3], [employee_id3]], ...] 
+        You can only use employee_id and ticket_id from the given tables. Do not make imaginary employee_id or task_id. 
+        Verify and ensure that all the tickets are assigned to an employee. and no imaginary employee_id or task_id is used.
 		"""
 		),
-        expected_output="""example: [[[ticket_id1, ticket_id2, ...], [employee_id1, employee_id2, ...]] , [[ticket_id3], [employee_id3,]]] 
-        You can only use employee_id and ticket_id from the given tables. Do not make imaginary employee_id. 
-		If you do not have any matching skills for a ticket, suggest it to the employees with the closest matching skill. Do no explain the reasoning behind the time estimation.
+        expected_output="""
+        No tasks should be left unassigned. If you do not have any matching skills for a ticket, suggest it to the emp_id with the closest matching skill. 
+  		Do no explain the reasoning behind the estimation. Do not make empty lists.
 		""",
 		agent=agent
 	)
@@ -35,6 +40,9 @@ def assignment_task(agent, employee, task):
 		{task}
   
 		"""),
-		expected_output="You will look over the ticket and format it in the format [[task_id, estimated_time_in_hours], ...] Your Final answer must be the ticket and estimated time only, the ticket and nothing else.",
+		expected_output="""You will look over the ticket and format it in the format [[task_id, estimated_time_in_hours], ...] 
+  			Your Final answer must be the ticket and estimated time only, the ticket and nothing else. 
+			Output Format: [[task_id1, estimated_time1], [task_id2, estimated_time2], ...] - List of lists
+  			""",
 		agent=agent
 	)
