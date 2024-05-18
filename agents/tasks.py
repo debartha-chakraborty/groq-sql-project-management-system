@@ -19,9 +19,10 @@ def identification_task(agent, employees, tickets):
 		{tickets}
 		"""
 		),
-        expected_output="example: [[[ticket_id1, ticket_id2, ...], [employee_id1, employee_id2, ...]] , [[ticket_id3], [employee_id3,]]] \
-		where ticket_id1, ticket_id2, ticket_id3 are the ticket ids and employee_id1, employee_id2, employee_id3 are the employee ids. \
-		ticket_id1 and ticket_id2 are similar and employee_id1 and employee_id2 are similar. ticket_id3 and employee_id3 are similar.Your Final answer must be in the format [[[ticket_id1, ticket_id2, ...], [employee_id1, employee_id2, ...]], ...]",
+        expected_output="""example: [[[ticket_id1, ticket_id2, ...], [employee_id1, employee_id2, ...]] , [[ticket_id3], [employee_id3,]]] 
+        You can only use employee_id and ticket_id from the given tables. Do not make imaginary employee_id. 
+		If you do not have any matching skills for a ticket, suggest it to the employees with the closest matching skill. Do no explain the reasoning behind the time estimation.
+		""",
 		agent=agent
 	)
 		
