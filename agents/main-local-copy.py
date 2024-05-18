@@ -1,12 +1,12 @@
 from crewai import Crew
 import json
-from .tools import get_all_empProjCount, get_empProjCount, get_task_details
+from tools import get_all_empProjCount, get_empProjCount, get_task_details
 
 
 def get_suited_employees():
-    from .tasks import identification_task
-    from .my_agents import senior_manager_agent
-    from .tools import get_employees_tasks_with_skills
+    from tasks import identification_task
+    from my_agents import senior_manager_agent
+    from tools import get_employees_tasks_with_skills
     # Create Agents
     senior_engineer_agent = senior_manager_agent()
     # Get employees and tasks
@@ -58,8 +58,8 @@ def assign_task_availability(suited_employees_tasks):
 
 
 def get_estimated_time(assignment_matrix):
-    from .tasks import assignment_task
-    from .my_agents import scrum_master_agent
+    from tasks import assignment_task
+    from my_agents import scrum_master_agent
     
     task_ids = [task[0] for task in assignment_matrix]
     task_details = get_task_details(task_ids)
@@ -99,10 +99,20 @@ def ai_task_assigner():
         return False
     if suited_employees_tasks[0] == "ERR":
         return {"error": suited_employees_tasks[1]}
+    print(suited_employees_tasks)
+    
     assignment_matrix = assign_task_availability(suited_employees_tasks)
+    print(assignment_matrix)
+    
     task_details = get_estimated_time(assignment_matrix)
+    print(task_details)
+    
     final_output = join_task_details(assignment_matrix, task_details)
+    print(final_output)
+    
     sql = build_sql_query(final_output)
+    print(sql)
+    
     return sql
 
 if __name__ == "__main__":

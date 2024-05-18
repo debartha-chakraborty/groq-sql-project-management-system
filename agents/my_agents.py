@@ -1,10 +1,12 @@
 from textwrap import dedent
 from crewai import Agent
 from langchain_groq import ChatGroq
-
+from dotenv import load_dotenv
+import os
+load_dotenv()
 
 llm = ChatGroq(
-		api_key="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",
+		api_key=os.environ.get("LLM_API_KEY"),
 		model="llama3-70b-8192",
 		temperature=0
 	)
@@ -13,7 +15,7 @@ def scrum_master_agent():
     	return Agent(
 		role='Scrum Master',
 		goal='Identify the time required to finish the provided tickets.',
-		backstory=dedent("""You are a Scrum Master. You can provide estimate the required time to complete each ticket."""),
+		backstory=dedent("""You are a Scrum Master. You can provide estimate the required time to complete each ticket. Do no explain the reasoning behind the time estimation."""),
 		allow_delegation=False,
 		llm=llm,
 		verbose=True
