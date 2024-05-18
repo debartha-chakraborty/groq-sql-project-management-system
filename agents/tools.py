@@ -26,6 +26,8 @@ def get_all_empProjCount():
 
 def get_empProjCount(employee_list):
     """Returns the project count for each employee.""" 
+    if employee_list == []:
+        return {"error": "The Input list is empty."}
     employee_list = tuple(employee_list)
     conn = get_connection()
     cur = conn.cursor()
