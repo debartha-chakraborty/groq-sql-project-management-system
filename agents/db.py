@@ -7,7 +7,6 @@ load_dotenv()
 def get_connection():
     """Establishes a connection to the Postgres database."""
     conn = psycopg2.connect(os.environ.get("DATABASE_URL"))
-    # conn = psycopg2.connect(os.environ.get("DEMO_TEST_DATABASE_URL"))
     return conn
 
 
