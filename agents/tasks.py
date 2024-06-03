@@ -33,14 +33,16 @@ def identification_task(agent, employees, tickets):
 		
 def assignment_task(agent, employee, task):
 	return Task(description=dedent(
-		f"""You will estimate the time required in hours for the task based on task description and title.
+		f"""
+  		You will estimate the time required in hours for the task based on task description and title.
 
 		Task
 		----
 		{task}
   
 		"""),
-		expected_output="""You will look over the ticket and format it in the format [[task_id, estimated_time_in_hours], ...] 
+		expected_output="""
+  			You will look over the ticket and format it in the format [[task_id, estimated_time_in_hours], ...] 
   			Your Final answer must be the ticket and estimated time only, the ticket and nothing else. 
 			Output Format: [[task_id1, estimated_time1], [task_id2, estimated_time2], ...] - List of lists
   			""",

@@ -227,7 +227,7 @@ def delete_task(task_id):
 def get_jobs():
     conn = get_connection()
     cur = conn.cursor()
-    cur.execute("SELECT e.name, e.designation, t.title, t.description, j.assignment_date, j.estimated_time, j.completion_date, j.status FROM job j JOIN employee e ON j.emp_id = e.emp_id JOIN task t ON j.task_id = t.task_id WHERE j.status != 'removed'")
+    cur.execute("SELECT e.name, e.designation, t.title, t.description, j.assignment_date, j.estimated_time, j.completion_date, j.status, j.task_id FROM job j JOIN employee e ON j.emp_id = e.emp_id JOIN task t ON j.task_id = t.task_id WHERE j.status != 'removed'")
     jobs = cur.fetchall()
     close_connection(conn)
     return jsonify(jobs)
